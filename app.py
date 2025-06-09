@@ -18,6 +18,7 @@ import threading
 import winsound  # For Windows sound notifications
 from datetime import datetime, timedelta
 import pytz
+import secrets
 
 # Configure logging
 logging.basicConfig(
@@ -803,4 +804,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"Failed to start Flask application: {str(e)}") 
 
-        
+        print(secrets.token_hex(32)) 
