@@ -15,10 +15,10 @@ import math
 import schedule
 import time
 import threading
-import winsound  # For Windows sound notifications
 from datetime import datetime, timedelta
 import pytz
 import secrets
+import platform
 
 # Configure logging
 logging.basicConfig(
@@ -30,6 +30,16 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Try to import winsound only on Windows
+if platform.system() == 'Windows':
+    try:
+        import winsound
+        SOUND_AVAILABLE = True
+    except ImportError:
+        SOUND_AVAILABLE = False
+else:
+    SOUND_AVAILABLE = False
 
 app = Flask(__name__, static_folder='.')
 # Update CORS configuration to allow requests from your deployed frontend
@@ -314,11 +324,12 @@ def notify_reminder(reminder_id):
         reminder = reminders[reminder_id]
         message = f"Reminder for {reminder['user']}: {reminder['text']}"
         
-        # Play a sound notification
-        try:
-            winsound.Beep(1000, 1000)  # Frequency: 1000Hz, Duration: 1000ms
-        except:
-            pass  # Ignore if sound fails
+        # Play a sound notification only if available
+        if SOUND_AVAILABLE:
+            try:
+                winsound.Beep(1000, 1000)  # Frequency: 1000Hz, Duration: 1000ms
+            except:
+                pass  # Ignore if sound fails
         
         # Speak the reminder
         speak(message)
@@ -802,6 +813,8 @@ if __name__ == '__main__':
         # Use 0.0.0.0 to make the server publicly available
         app.run(host='0.0.0.0', port=port, debug=False)
     except Exception as e:
-        logger.error(f"Failed to start Flask application: {str(e)}") 
+        logger.error(f"Failed to start Flask application: {str(e)}")
 
-        print(secrets.token_hex(32)) 
+print(secrets.token_hex(32)) 
+
+        
