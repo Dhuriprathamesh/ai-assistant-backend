@@ -41,6 +41,17 @@ if platform.system() == 'Windows':
 else:
     SOUND_AVAILABLE = False
 
+# Try to import text-to-speech engine
+TTS_AVAILABLE = False
+try:
+    import pyttsx3
+    engine = pyttsx3.init()
+    TTS_AVAILABLE = True
+    logger.info("Text-to-speech engine initialized successfully")
+except Exception as e:
+    logger.warning(f"Text-to-speech not available: {str(e)}")
+    engine = None
+
 app = Flask(__name__, static_folder='.')
 # Update CORS configuration to allow requests from your deployed frontend
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -92,14 +103,6 @@ try:
 except ImportError:
     logger.warning("Speech recognition not available. Voice commands will be disabled.")
     SPEECH_RECOGNITION_AVAILABLE = False
-
-try:
-    import pyttsx3
-    engine = pyttsx3.init()
-    logger.info("Text-to-speech engine initialized successfully")
-except Exception as e:
-    logger.error(f"Failed to initialize text-to-speech engine: {str(e)}")
-    engine = None
 
 # Global variables
 user_name = "User"
@@ -331,8 +334,9 @@ def notify_reminder(reminder_id):
             except:
                 pass  # Ignore if sound fails
         
-        # Speak the reminder
-        speak(message)
+        # Speak the reminder only if TTS is available
+        if TTS_AVAILABLE:
+            speak(message)
         
         # Remove the reminder
         del reminders[reminder_id]
@@ -368,7 +372,7 @@ reminder_thread.start()
 def speak(text):
     """Convert text to speech"""
     try:
-        if engine:
+        if TTS_AVAILABLE and engine:
             engine.say(text)
             engine.runAndWait()
         return text
@@ -666,7 +670,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'speech_recognition': SPEECH_RECOGNITION_AVAILABLE,
-        'text_to_speech': engine is not None
+        'text_to_speech': TTS_AVAILABLE
     })
 
 @app.route('/api/register', methods=['POST'])
