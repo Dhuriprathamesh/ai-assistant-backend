@@ -54,7 +54,17 @@ except Exception as e:
 
 app = Flask(__name__, static_folder='.')
 # Update CORS configuration to allow requests from your deployed frontend
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:5000",
+            "https://ai-assistant-backend-7yp9.onrender.com",
+            "https://*.github.io"  # Allow GitHub Pages
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')  # Use environment variable in production
 
 # Set timezone (you can change this to your local timezone)
